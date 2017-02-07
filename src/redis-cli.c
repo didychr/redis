@@ -1150,7 +1150,7 @@ static void usage(void) {
 "  redis-cli get mypasswd\n"
 "  redis-cli -r 100 lpush mylist x\n"
 "  redis-cli -r 100 -i 1 info | grep used_memory_human:\n"
-"  redis-cli --eval myscript.lua key1 key2 , arg1 arg2 arg3\n"
+"  redis-cli --eval myscript.lua.old key1 key2 , arg1 arg2 arg3\n"
 "  redis-cli --scan --pattern '*:12345*'\n"
 "\n"
 "  (Note: when using --eval the comma separates KEYS[] from ARGV[] items)\n"
@@ -1451,7 +1451,7 @@ static int evalMode(int argc, char **argv) {
                 cliReadReply(0);
                 break; /* Return to the caller. */
             } else {
-                strncpy(config.prompt,"lua debugger> ",sizeof(config.prompt));
+                strncpy(config.prompt,"lua.old debugger> ",sizeof(config.prompt));
                 repl();
                 /* Restart the session if repl() returned. */
                 cliConnect(1);

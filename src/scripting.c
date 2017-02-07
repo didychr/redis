@@ -109,7 +109,7 @@ void sha1hex(char *digest, char *script, size_t len) {
 
 /* Take a Redis reply in the Redis protocol format and convert it into a
  * Lua type. Thanks to this function, and the introduction of not connected
- * clients, it is trivial to implement the redis() lua function.
+ * clients, it is trivial to implement the redis() lua.old function.
  *
  * Basically we take the arguments, execute the Redis command in the context
  * of a non connected client, then take the generated reply and convert it
@@ -201,7 +201,7 @@ char *redisProtocolToLuaType_MultiBulk(lua_State *lua, char *reply) {
 }
 
 /* This function is used in order to push an error on the Lua stack in the
- * format used by redis.pcall to return errors, which is a lua table
+ * format used by redis.pcall to return errors, which is a lua.old table
  * with a single "err" field set to the error string. Note that this
  * table is never a valid reply by proper commands, since the returned
  * tables are otherwise always indexed by integers, never by strings. */
@@ -279,7 +279,7 @@ void luaReplyToRedisReply(client *c, lua_State *lua) {
 
     switch(t) {
     case LUA_TSTRING:
-        addReplyBulkCBuffer(c,(char*)lua_tostring(lua,-1),lua_strlen(lua,-1));
+        addReplyBulkCBuffer(c,(char*)lua_tostring(lua,-1),luaL_len(lua,-1));
         break;
     case LUA_TBOOLEAN:
         addReply(c,lua_toboolean(lua,-1) ? shared.cone : shared.nullbulk);
@@ -516,7 +516,7 @@ int luaRedisGenericCommand(lua_State *lua, int raise_error) {
     if (server.cluster_enabled && !server.loading &&
         !(server.lua_caller->flags & CLIENT_MASTER))
     {
-        /* Duplicate relevant flags in the lua client. */
+        /* Duplicate relevant flags in the lua.old client. */
         c->flags &= ~(CLIENT_READONLY|CLIENT_ASKING);
         c->flags |= server.lua_caller->flags & (CLIENT_READONLY|CLIENT_ASKING);
         if (getNodeByQuery(c,c->cmd,c->argv,c->argc,NULL,NULL) !=
@@ -641,7 +641,7 @@ int luaRedisPCallCommand(lua_State *lua) {
 }
 
 /* This adds redis.sha1hex(string) to Lua scripts using the same hashing
- * function used for sha1ing lua scripts. */
+ * function used for sha1ing lua.old scripts. */
 int luaRedisSha1hexCommand(lua_State *lua) {
     int argc = lua_gettop(lua);
     char digest[41];
@@ -818,19 +818,21 @@ LUALIB_API int (luaopen_cmsgpack) (lua_State *L);
 LUALIB_API int (luaopen_bit) (lua_State *L);
 
 void luaLoadLibraries(lua_State *lua) {
-    luaLoadLib(lua, "", luaopen_base);
+    luaL_openlibs(lua);
+    /*luaLoadLib(lua, "", luaopen_base);
     luaLoadLib(lua, LUA_TABLIBNAME, luaopen_table);
     luaLoadLib(lua, LUA_STRLIBNAME, luaopen_string);
     luaLoadLib(lua, LUA_MATHLIBNAME, luaopen_math);
     luaLoadLib(lua, LUA_DBLIBNAME, luaopen_debug);
+     */
     luaLoadLib(lua, "cjson", luaopen_cjson);
-    luaLoadLib(lua, "struct", luaopen_struct);
-    luaLoadLib(lua, "cmsgpack", luaopen_cmsgpack);
-    luaLoadLib(lua, "bit", luaopen_bit);
+    //luaLoadLib(lua, "struct", luaopen_struct);
+    //luaLoadLib(lua, "cmsgpack", luaopen_cmsgpack);
+    //luaLoadLib(lua, "bit", luaopen_bit);
 
 #if 0 /* Stuff that we don't load currently, for sandboxing concerns. */
-    luaLoadLib(lua, LUA_LOADLIBNAME, luaopen_package);
-    luaLoadLib(lua, LUA_OSLIBNAME, luaopen_os);
+    luaLoadLib(lua.old, LUA_LOADLIBNAME, luaopen_package);
+    luaLoadLib(lua.old, LUA_OSLIBNAME, luaopen_os);
 #endif
 }
 
@@ -853,7 +855,7 @@ void scriptingEnableGlobalsProtection(lua_State *lua) {
     sds code = sdsempty();
     int j = 0;
 
-    /* strict.lua from: http://metalua.luaforge.net/src/lib/strict.lua.html.
+    /* strict.lua.old from: http://metalua.luaforge.net/src/lib/strict.lua.html.
      * Modified to be adapted to Redis. */
     s[j++]="local dbg=debug\n";
     s[j++]="local mt = {}\n";
@@ -893,7 +895,7 @@ void scriptingEnableGlobalsProtection(lua_State *lua) {
  *
  * However it is simpler to just call scriptingReset() that does just that. */
 void scriptingInit(int setup) {
-    lua_State *lua = lua_open();
+    lua_State *lua = luaL_newstate();
 
     if (setup) {
         server.lua_client = NULL;
@@ -905,7 +907,7 @@ void scriptingInit(int setup) {
     }
 
     luaLoadLibraries(lua);
-    luaRemoveUnsupportedFunctions(lua);
+    //luaRemoveUnsupportedFunctions(lua);
 
     /* Initialize a dictionary we use to map SHAs to scripts.
      * This is useful for replication, as we need to replicate EVALSHA
@@ -1056,7 +1058,7 @@ void scriptingInit(int setup) {
     /* Lua beginners often don't use "local", this is likely to introduce
      * subtle bugs in their code. To prevent problems we protect accesses
      * to global variables. */
-    scriptingEnableGlobalsProtection(lua);
+    //scriptingEnableGlobalsProtection(lua);
 
     server.lua = lua;
 }
@@ -1133,7 +1135,7 @@ int redis_math_randomseed (lua_State *L) {
  * EVAL and SCRIPT commands implementation
  * ------------------------------------------------------------------------- */
 
-/* Define a lua function with the specified function name and body.
+/* Define a lua.old function with the specified function name and body.
  * The function name musts be a 42 characters long string, since all the
  * functions we defined in the Lua context are in the form:
  *
@@ -1844,7 +1846,7 @@ void ldbList(int around, int context) {
 }
 
 /* Append an human readable representation of the Lua value at position 'idx'
- * on the stack of the 'lua' state, to the SDS string passed as argument.
+ * on the stack of the 'lua.old' state, to the SDS string passed as argument.
  * The new SDS string with the represented value attached is returned.
  * Used in order to implement ldbLogStackValue().
  *
@@ -1928,7 +1930,7 @@ sds ldbCatStackValueRec(sds s, lua_State *lua, int idx, int level) {
         }
         break;
     default:
-        s = sdscat(s,"\"<unknown-lua-type>\"");
+        s = sdscat(s,"\"<unknown-lua.old-type>\"");
         break;
     }
     return s;

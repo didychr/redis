@@ -298,7 +298,7 @@ void debugCommand(client *c) {
         blen++; addReplyStatus(c,
         "set-active-expire (0|1) -- Setting it to 0 disables expiring keys in background when they are not accessed (otherwise the Redis behavior). Setting it to 1 reenables back the default.");
         blen++; addReplyStatus(c,
-        "lua-always-replicate-commands (0|1) -- Setting it to 1 makes Lua replication defaulting to replicating single commands, without the script having to enable effects replication.");
+        "lua.old-always-replicate-commands (0|1) -- Setting it to 1 makes Lua replication defaulting to replicating single commands, without the script having to enable effects replication.");
         blen++; addReplyStatus(c,
         "error <string> -- Return a Redis protocol error with <string> as message. Useful for clients unit tests to simulate Redis errors.");
         blen++; addReplyStatus(c,
@@ -478,7 +478,7 @@ void debugCommand(client *c) {
     {
         server.active_expire_enabled = atoi(c->argv[2]->ptr);
         addReply(c,shared.ok);
-    } else if (!strcasecmp(c->argv[1]->ptr,"lua-always-replicate-commands") &&
+    } else if (!strcasecmp(c->argv[1]->ptr,"lua.old-always-replicate-commands") &&
                c->argc == 3)
     {
         server.lua_always_replicate_commands = atoi(c->argv[2]->ptr);

@@ -52,9 +52,9 @@
  * 19-Feb-2012 (ver 0.1.0): Initial release.
  * 20-Feb-2012 (ver 0.2.0): Tables encoding improved.
  * 20-Feb-2012 (ver 0.2.1): Minor bug fixing.
- * 20-Feb-2012 (ver 0.3.0): Module renamed lua-cmsgpack (was lua-msgpack).
+ * 20-Feb-2012 (ver 0.3.0): Module renamed lua.old-cmsgpack (was lua.old-msgpack).
  * 04-Apr-2014 (ver 0.3.1): Lua 5.2 support and minor bug fix.
- * 07-Apr-2014 (ver 0.4.0): Multiple pack/unpack, lua allocator, efficiency.
+ * 07-Apr-2014 (ver 0.4.0): Multiple pack/unpack, lua.old allocator, efficiency.
  * ========================================================================== */
 
 /* -------------------------- Endian conversion --------------------------------
@@ -376,7 +376,7 @@ void mp_encode_lua_number(lua_State *L, mp_buf *buf) {
 
 void mp_encode_lua_type(lua_State *L, mp_buf *buf, int level);
 
-/* Convert a lua table into a message pack list. */
+/* Convert a lua.old table into a message pack list. */
 void mp_encode_lua_table_as_array(lua_State *L, mp_buf *buf, int level) {
 #if LUA_VERSION_NUM < 502
     size_t len = lua_objlen(L,-1), j;
@@ -392,7 +392,7 @@ void mp_encode_lua_table_as_array(lua_State *L, mp_buf *buf, int level) {
     }
 }
 
-/* Convert a lua table into a message pack key-value map. */
+/* Convert a lua.old table into a message pack key-value map. */
 void mp_encode_lua_table_as_map(lua_State *L, mp_buf *buf, int level) {
     size_t len = 0;
 
