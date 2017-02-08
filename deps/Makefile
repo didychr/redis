@@ -59,7 +59,17 @@ ifeq ($(uname_S),SunOS)
 	LUA_CFLAGS= -D__C99FEATURES__=1
 endif
 
-LUA_CFLAGS+= -O2 -Wall -DLUA_ANSI -DENABLE_CJSON_GLOBAL -DREDIS_STATIC='' $(CFLAGS)
+LUA_PLATFORM="all"
+
+ifeq ($(uname_S),Linux)
+	LUA_PLATFORM="linux"
+endif
+
+ifeq ($(uname_S),Darwin)
+	LUA_PLATFORM="macosx"
+endif
+
+LUA_CFLAGS+= -O2 -Wall -DENABLE_CJSON_GLOBAL -DREDIS_STATIC='' $(CFLAGS)
 LUA_LDFLAGS+= $(LDFLAGS)
 # lua's Makefile defines AR="ar rcu", which is unusual, and makes it more
 # challenging to cross-compile lua (and redis).  These defines make it easier
@@ -69,7 +79,7 @@ ARFLAGS=rcu
 
 lua: .make-prerequisites
 	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
-	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)"
+	cd lua/src && $(MAKE) $(LUA_PLATFORM)
 
 .PHONY: lua
 
